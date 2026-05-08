@@ -1,0 +1,325 @@
+import { useState } from "react";
+
+const plan = [
+  {
+    day: "DAY 1",
+    label: "PUSH",
+    tag: "Chest · Shoulders · Triceps",
+    color: "#FF4D4D",
+    bg: "#1a0a0a",
+    icon: "🔴",
+    goal: "Burn ~280 kcal",
+    exercises: [
+      { name: "Pushups", sets: 4, reps: "15", rest: "45s", note: "Full range, chest to floor" },
+      { name: "Pike Pushups", sets: 3, reps: "12", rest: "45s", note: "Hips high, targets shoulders" },
+      { name: "Diamond Pushups", sets: 3, reps: "10", rest: "45s", note: "Tricep killer" },
+      { name: "Incline Pushups", sets: 3, reps: "12", rest: "45s", note: "Use bed/couch" },
+      { name: "Tricep Dips", sets: 3, reps: "12", rest: "45s", note: "Use a sturdy chair" },
+      { name: "Plank Hold", sets: 3, reps: "45s", rest: "30s", note: "Core tight, don't sag" },
+    ],
+  },
+  {
+    day: "DAY 2",
+    label: "PULL",
+    tag: "Back · Biceps · Rear Delts",
+    color: "#4D9FFF",
+    bg: "#0a0f1a",
+    icon: "🔵",
+    goal: "Burn ~260 kcal",
+    exercises: [
+      { name: "Door Rows / Band Rows", sets: 4, reps: "12", rest: "45s", note: "Best back exercise at home" },
+      { name: "Band Bicep Curls", sets: 3, reps: "15", rest: "45s", note: "€8 band from Amazon.de" },
+      { name: "Superman Hold", sets: 3, reps: "12", rest: "30s", note: "Hold 2 sec at top" },
+      { name: "Reverse Snow Angels", sets: 3, reps: "12", rest: "30s", note: "Lie face down on floor" },
+      { name: "Chin-ups (if bar)", sets: 3, reps: "max", rest: "60s", note: "Even 3-4 reps is great" },
+      { name: "Dead Hang", sets: 3, reps: "20s", rest: "30s", note: "Grip + decompresses spine" },
+    ],
+  },
+  {
+    day: "DAY 3",
+    label: "LEGS",
+    tag: "Quads · Glutes · Hamstrings · Calves",
+    color: "#4DFF91",
+    bg: "#0a1a0f",
+    icon: "🟢",
+    goal: "Burn ~320 kcal",
+    exercises: [
+      { name: "Squats", sets: 4, reps: "15", rest: "45s", note: "Biggest fat burner — big muscle group" },
+      { name: "Reverse Lunges", sets: 3, reps: "12 each", rest: "45s", note: "Easier on knees than forward" },
+      { name: "Jump Squats", sets: 3, reps: "10", rest: "45s", note: "Explosive — spikes heart rate" },
+      { name: "Glute Bridges", sets: 4, reps: "15", rest: "30s", note: "Squeeze at top for 1 sec" },
+      { name: "Wall Sit", sets: 3, reps: "45s", rest: "30s", note: "Burns like crazy" },
+      { name: "Calf Raises", sets: 3, reps: "20", rest: "30s", note: "Use a step for full range" },
+    ],
+  },
+  {
+    day: "DAY 4",
+    label: "FULL BODY",
+    tag: "High Intensity Circuit · Max Calorie Burn",
+    color: "#FFD700",
+    bg: "#1a1500",
+    icon: "🟡",
+    goal: "Burn ~350 kcal",
+    exercises: [
+      { name: "Burpees", sets: 3, reps: "10", rest: "45s", note: "No.1 fat loss exercise" },
+      { name: "Squat + Press (bag)", sets: 3, reps: "12", rest: "45s", note: "Hold your backpack" },
+      { name: "Pushups", sets: 3, reps: "12", rest: "45s", note: "Keep rest short" },
+      { name: "Mountain Climbers", sets: 3, reps: "30s", rest: "30s", note: "Fast pace" },
+      { name: "Jump Lunges", sets: 3, reps: "10 each", rest: "45s", note: "Explosive, heart rate up" },
+      { name: "Plank to Downdog", sets: 3, reps: "10", rest: "30s", note: "Flows between both positions" },
+    ],
+  },
+];
+
+const cardio = [
+  { name: "Phoenix See Loop", dist: "3.5 km", time: "25–30 min", type: "Flat, great after class" },
+  { name: "Westfalenpark", dist: "4–5 km", time: "35–40 min", type: "Trails + paths, scenic" },
+  { name: "Rombergpark", dist: "3–4 km", time: "30 min", type: "Forest trails, calming" },
+  { name: "Walk to Uni", dist: "Varies", time: "Free cardio", type: "Do this daily if possible" },
+];
+
+const weekSchedule = [
+  { label: "MON", type: "PUSH", color: "#FF4D4D", active: true },
+  { label: "TUE", type: "CARDIO", color: "#FF9F4D", active: true },
+  { label: "WED", type: "PULL", color: "#4D9FFF", active: true },
+  { label: "THU", type: "REST / WALK", color: "#888", active: false },
+  { label: "FRI", type: "LEGS", color: "#4DFF91", active: true },
+  { label: "SAT", type: "FULL BODY", color: "#FFD700", active: true },
+  { label: "SUN", type: "REST", color: "#555", active: false },
+];
+
+export default function WorkoutPlan() {
+  const [activeDay, setActiveDay] = useState(0);
+  const [completedSets, setCompletedSets] = useState({});
+
+  const toggleSet = (exIdx, setIdx) => {
+    const key = `${activeDay}-${exIdx}-${setIdx}`;
+    setCompletedSets(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const current = plan[activeDay];
+
+  return (
+    <div style={{
+      fontFamily: "'DM Mono', 'Courier New', monospace",
+      background: "#0d0d0d",
+      minHeight: "100vh",
+      color: "#fff",
+      padding: "0",
+    }}>
+      {/* Header */}
+      <div style={{
+        background: "linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%)",
+        borderBottom: "1px solid #222",
+        padding: "24px 20px 16px",
+      }}>
+        <div style={{ fontSize: 11, letterSpacing: 4, color: "#666", marginBottom: 6 }}>FAT LOSS PROTOCOL · DORTMUND</div>
+        <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: -1, fontFamily: "Georgia, serif" }}>
+          85kg → <span style={{ color: "#4DFF91" }}>74kg</span>
+        </div>
+        <div style={{ fontSize: 12, color: "#555", marginTop: 4 }}>Target: 11kg in 10–12 weeks · 3–4 days/week</div>
+
+        {/* Progress bar */}
+        <div style={{ marginTop: 14, background: "#1a1a1a", borderRadius: 4, height: 6, border: "1px solid #222" }}>
+          <div style={{ width: "0%", height: "100%", background: "#4DFF91", borderRadius: 4, transition: "width 1s" }} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#444", marginTop: 4 }}>
+          <span>START: 85kg</span><span>GOAL: 74kg</span>
+        </div>
+      </div>
+
+      {/* Week Schedule Strip */}
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #1a1a1a" }}>
+        <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 10 }}>WEEKLY STRUCTURE</div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {weekSchedule.map((d, i) => (
+            <div key={i} style={{
+              flex: 1,
+              background: d.active ? `${d.color}15` : "#111",
+              border: `1px solid ${d.active ? d.color + "44" : "#1a1a1a"}`,
+              borderRadius: 6,
+              padding: "8px 4px",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 9, color: "#555", marginBottom: 3 }}>{d.label}</div>
+              <div style={{ fontSize: 8, color: d.active ? d.color : "#333", fontWeight: 700, lineHeight: 1.2 }}>{d.type}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: "#444", marginTop: 8 }}>
+          💡 No fixed schedule — pick any 3–4 days that work for your MSc timetable
+        </div>
+      </div>
+
+      {/* Day Selector */}
+      <div style={{ padding: "16px 20px 0" }}>
+        <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 10 }}>SELECT WORKOUT</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {plan.map((d, i) => (
+            <button key={i} onClick={() => setActiveDay(i)} style={{
+              flex: 1,
+              background: activeDay === i ? d.color : "#111",
+              border: `1px solid ${activeDay === i ? d.color : "#222"}`,
+              borderRadius: 8,
+              padding: "10px 4px",
+              color: activeDay === i ? "#000" : d.color,
+              cursor: "pointer",
+              transition: "all 0.2s",
+              fontFamily: "inherit",
+            }}>
+              <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1 }}>{d.day}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, marginTop: 2 }}>{d.label}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Workout Detail */}
+      <div style={{ padding: "16px 20px" }}>
+        <div style={{
+          background: `${current.color}08`,
+          border: `1px solid ${current.color}22`,
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 16,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: current.color, fontFamily: "Georgia, serif" }}>
+                {current.icon} {current.label}
+              </div>
+              <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{current.tag}</div>
+            </div>
+            <div style={{
+              background: `${current.color}20`,
+              border: `1px solid ${current.color}44`,
+              borderRadius: 6,
+              padding: "6px 10px",
+              fontSize: 11,
+              color: current.color,
+              textAlign: "center",
+            }}>
+              {current.goal}
+            </div>
+          </div>
+        </div>
+
+        {/* Exercise Table */}
+        <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 10 }}>EXERCISES · TAP SETS TO TRACK</div>
+        {current.exercises.map((ex, exIdx) => (
+          <div key={exIdx} style={{
+            background: "#111",
+            border: "1px solid #1e1e1e",
+            borderRadius: 10,
+            padding: 14,
+            marginBottom: 10,
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{ex.name}</div>
+                <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{ex.note}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 12, color: current.color }}>{ex.sets} × {ex.reps}</div>
+                <div style={{ fontSize: 10, color: "#444" }}>rest {ex.rest}</div>
+              </div>
+            </div>
+            {/* Set trackers */}
+            <div style={{ display: "flex", gap: 6 }}>
+              {Array.from({ length: ex.sets }).map((_, setIdx) => {
+                const key = `${activeDay}-${exIdx}-${setIdx}`;
+                const done = completedSets[key];
+                return (
+                  <button key={setIdx} onClick={() => toggleSet(exIdx, setIdx)} style={{
+                    width: 36, height: 28,
+                    background: done ? current.color : "#1a1a1a",
+                    border: `1px solid ${done ? current.color : "#2a2a2a"}`,
+                    borderRadius: 4,
+                    color: done ? "#000" : "#444",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "all 0.15s",
+                  }}>
+                    {done ? "✓" : `S${setIdx + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Cardio Section */}
+      <div style={{ padding: "0 20px 16px" }}>
+        <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 10 }}>CARDIO OPTIONS · DORTMUND 🏃</div>
+        {cardio.map((c, i) => (
+          <div key={i} style={{
+            background: "#111",
+            border: "1px solid #1e1e1e",
+            borderRadius: 8,
+            padding: "10px 14px",
+            marginBottom: 8,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</div>
+              <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{c.type}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 12, color: "#FF9F4D" }}>{c.dist}</div>
+              <div style={{ fontSize: 10, color: "#444" }}>{c.time}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Timeline */}
+      <div style={{ padding: "0 20px 24px" }}>
+        <div style={{ fontSize: 10, letterSpacing: 3, color: "#444", marginBottom: 10 }}>WEIGHT TIMELINE</div>
+        <div style={{
+          background: "#111",
+          border: "1px solid #1e1e1e",
+          borderRadius: 12,
+          overflow: "hidden",
+        }}>
+          {[
+            { month: "START", weight: "85 kg", loss: "—", color: "#666" },
+            { month: "MONTH 1", weight: "82 kg", loss: "−3 kg", color: "#FF9F4D" },
+            { month: "MONTH 2", weight: "78–79 kg", loss: "−3–4 kg", color: "#FFD700" },
+            { month: "MONTH 3", weight: "74–75 kg ✅", loss: "−4 kg", color: "#4DFF91" },
+          ].map((t, i) => (
+            <div key={i} style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "12px 16px",
+              borderBottom: i < 3 ? "1px solid #1a1a1a" : "none",
+              background: i === 3 ? "#4DFF9110" : "transparent",
+            }}>
+              <div style={{ fontSize: 11, color: "#555", letterSpacing: 1 }}>{t.month}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: t.color }}>{t.weight}</div>
+              <div style={{ fontSize: 11, color: t.color }}>{t.loss}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{
+          marginTop: 14,
+          background: "#FF4D4D10",
+          border: "1px solid #FF4D4D22",
+          borderRadius: 8,
+          padding: 12,
+          fontSize: 11,
+          color: "#888",
+          lineHeight: 1.7,
+        }}>
+          ⚠️ <span style={{ color: "#FF4D4D" }}>Diet = 70% of results.</span> Aim for 1,700–1,900 kcal/day · 130g+ protein · Cut döner, sugary drinks, alcohol. Workouts burn fat — diet creates the deficit.
+        </div>
+      </div>
+    </div>
+  );
+}
